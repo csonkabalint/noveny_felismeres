@@ -1,0 +1,1 @@
+# novegy_felismeres
