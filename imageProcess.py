@@ -3,7 +3,12 @@ import cv2
 import numpy as np
 
 
+def show_end():
+    plt.show()
+    exit(0)
+
 img = cv2.imread("imageProcessTestData/quercus_acutissima_04.jpg")
+#img = cv2.imread("imageProcessTestData/quercus_acutissima_03.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_lobata_01.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_agrifolia_01.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_robus_01.jpg")
@@ -23,9 +28,8 @@ vari = (G - R) / (G + R - B + 0.00001)
 
 # J
 j = (2*G - R - B) - (2*R - G - B)
-#plt.figure()
-#plt.imshow(j)
-
+plt.figure()
+plt.imshow(j)
 
 
 
@@ -37,7 +41,26 @@ otsu_bin = cv2.bitwise_not(otsu_bin)
 plt.figure()
 plt.imshow(otsu_bin)
 
+img_osu_mask = cv2.bitwise_and(img, img, mask=otsu_bin)
 
+mask_i = img_osu_mask.sum(axis=2)
+mask_i = mask_i / 3
+print(mask_i.shape)
+
+plt.figure()
+plt.imshow(mask_i)
+
+
+mask_i8 = mask_i.astype(np.uint8)
+mask_i8 = cv2.medianBlur(mask_i8, 3)
+mask_i8 = cv2.medianBlur(mask_i8, 3)
+mask_i8 = cv2.medianBlur(mask_i8, 3)
+i_edges = cv2.Canny(mask_i8, 10, 220)
+
+plt.figure()
+plt.imshow(i_edges)
+
+show_end()
 
 # NDVI
 ndvi = (G - R) / (G + R)
@@ -58,13 +81,13 @@ maskClose = cv2.morphologyEx(maskOpen, cv2.MORPH_CLOSE, kernelClose)
 
 
 img_edges = cv2.Canny(V, 10, 220)
-kernel0 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(9, 9))
+kernel0 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))
 img_edges = cv2.dilate(img_edges, kernel0)
 
 plt.figure()
 plt.imshow(img_edges)
 
-edge_oshu =  cv2.bitwise_and(img_edges,img_edges,mask = otsu_bin)
+edge_oshu = cv2.bitwise_and(img_edges, img_edges, mask=otsu_bin)
 plt.figure()
 plt.imshow(edge_oshu)
 
@@ -80,7 +103,7 @@ cnts, b = cv2.findContours(dilated.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_S
 print(type(cnts))
 print(b)
 
-kernel2 = np.ones((1,20), np.uint8)  # note this is a horizontal kernel
+kernel2 = np.ones((1, 20), np.uint8)  # note this is a horizontal kernel
 d_im = cv2.dilate(dilated, kernel2, iterations=1)
 e_im = cv2.erode(d_im, kernel2, iterations=1)
 
@@ -96,3 +119,5 @@ image_2 = cv2.morphologyEx(image_2, cv2.MORPH_CLOSE, kernelClose)
 #plt.imshow(image_2)
 
 plt.show()
+
+
