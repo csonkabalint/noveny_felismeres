@@ -7,6 +7,30 @@ def show_end():
     plt.show()
     exit(0)
 
+
+def calculate_i_channel(img_a):
+    img_a = img_a.sum(axis=2)
+    img_a = img_a / 3
+    return img_a
+
+
+def show_image(img_b):
+    plt.figure()
+    plt.imshow(img_b)
+
+
+def calculate_j(img_c):
+    B, G, R = cv2.split(img_c)
+    j = (2*G - R - B) - (2*R - G - B)
+    return j
+
+def blur_times(img_d, times):
+    for i in range(times):
+        img_d = cv2.medianBlur(img_d, 3)
+    return img_d
+
+
+
 img = cv2.imread("imageProcessTestData/quercus_acutissima_04.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_acutissima_03.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_lobata_01.jpg")
@@ -27,38 +51,60 @@ vari = (G - R) / (G + R - B + 0.00001)
 
 
 # J
-j = (2*G - R - B) - (2*R - G - B)
-plt.figure()
-plt.imshow(j)
+img_j = calculate_j(img)
+show_image(img_j)
 
 
 
-th, otsu_bin = cv2.threshold(j, 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-plt.figure()
-plt.imshow(otsu_bin)
+th, otsu_bin = cv2.threshold(img_j, 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+show_image(otsu_bin)
 otsu_bin = cv2.bitwise_not(otsu_bin)
 
-plt.figure()
-plt.imshow(otsu_bin)
+show_image(otsu_bin)
 
 img_osu_mask = cv2.bitwise_and(img, img, mask=otsu_bin)
 
-mask_i = img_osu_mask.sum(axis=2)
-mask_i = mask_i / 3
-print(mask_i.shape)
+orig_image = img_osu_mask.copy()
+image = cv2.cvtColor(img_osu_mask, cv2.COLOR_BGR2RGB)
+image = image.astype(np.float32) / 255.0
+gray = cv2.cvtColor(orig_image, cv2.COLOR_BGR2GRAY)
+blurred = cv2.GaussianBlur(gray, (5, 5), 0)
 
-plt.figure()
-plt.imshow(mask_i)
+edge_detector = cv2.ximgproc.createStructuredEdgeDetection('StructuredEdgeModel/model.yml')
+edges = edge_detector.detectEdges(image)
+
+show_image(edges)
+
+mask_i = calculate_i_channel(img_osu_mask)
+
+show_image(mask_i)
 
 
 mask_i8 = mask_i.astype(np.uint8)
-mask_i8 = cv2.medianBlur(mask_i8, 3)
-mask_i8 = cv2.medianBlur(mask_i8, 3)
-mask_i8 = cv2.medianBlur(mask_i8, 3)
+
+mask_i8_blur = blur_times(mask_i8, 1)
+mask_i8_blur_edges = cv2.Canny(mask_i8_blur, 10, 220)
+show_image(mask_i8_blur_edges)
+
+mask_i8_blur = blur_times(mask_i8, 2)
+mask_i8_blur_edges = cv2.Canny(mask_i8_blur, 10, 220)
+show_image(mask_i8_blur_edges)
+
+mask_i8_blur = blur_times(mask_i8, 4)
+mask_i8_blur_edges = cv2.Canny(mask_i8_blur, 10, 220)
+show_image(mask_i8_blur_edges)
+
+mask_i8_blur = blur_times(mask_i8, 8)
+mask_i8_blur_edges = cv2.Canny(mask_i8_blur, 10, 220)
+show_image(mask_i8_blur_edges)
+
+mask_i8_blur = blur_times(mask_i8, 1000)
+mask_i8_blur_edges = cv2.Canny(mask_i8_blur, 10, 220)
+show_image(mask_i8_blur_edges)
+
 i_edges = cv2.Canny(mask_i8, 10, 220)
 
-plt.figure()
-plt.imshow(i_edges)
+show_image(i_edges)
 
 show_end()
 
