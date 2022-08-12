@@ -30,9 +30,24 @@ def blur_times(img_d, times):
     return img_d
 
 
+def structured_edge(img_e):
 
-img = cv2.imread("imageProcessTestData/quercus_acutissima_04.jpg")
+    #img_e_orig = img_e.copy()
+    image_e = cv2.cvtColor(img_e, cv2.COLOR_BGR2RGB)
+    image_e = image_e.astype(np.float32) / 255.0
+    """
+    gray_e = cv2.cvtColor(img_e_orig, cv2.COLOR_BGR2GRAY)
+    blurred_e = cv2.GaussianBlur(gray_e, (5, 5), 0)
+    """
+    edge_detector_e = cv2.ximgproc.createStructuredEdgeDetection('StructuredEdgeModel/model.yml')
+    edges_e = edge_detector_e.detectEdges(image_e)
+    return edges_e
+
+
+
+#img = cv2.imread("imageProcessTestData/quercus_acutissima_04.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_acutissima_03.jpg")
+img = cv2.imread("imageProcessTestData/quercus_acutissima_05.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_lobata_01.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_agrifolia_01.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_robus_01.jpg")
@@ -63,7 +78,7 @@ otsu_bin = cv2.bitwise_not(otsu_bin)
 show_image(otsu_bin)
 
 img_osu_mask = cv2.bitwise_and(img, img, mask=otsu_bin)
-
+"""
 orig_image = img_osu_mask.copy()
 image = cv2.cvtColor(img_osu_mask, cv2.COLOR_BGR2RGB)
 image = image.astype(np.float32) / 255.0
@@ -72,8 +87,18 @@ blurred = cv2.GaussianBlur(gray, (5, 5), 0)
 
 edge_detector = cv2.ximgproc.createStructuredEdgeDetection('StructuredEdgeModel/model.yml')
 edges = edge_detector.detectEdges(image)
+"""
 
+edges_orig = structured_edge(img)
+show_image(edges_orig)
+
+edges_orig_blurred = blur_times(img, 100)
+edges_orig_blurred = structured_edge(img)
+show_image(edges_orig_blurred)
+
+edges = structured_edge(img_osu_mask)
 show_image(edges)
+
 
 mask_i = calculate_i_channel(img_osu_mask)
 
@@ -81,7 +106,7 @@ show_image(mask_i)
 
 
 mask_i8 = mask_i.astype(np.uint8)
-
+"""
 mask_i8_blur = blur_times(mask_i8, 1)
 mask_i8_blur_edges = cv2.Canny(mask_i8_blur, 10, 220)
 show_image(mask_i8_blur_edges)
@@ -101,7 +126,7 @@ show_image(mask_i8_blur_edges)
 mask_i8_blur = blur_times(mask_i8, 1000)
 mask_i8_blur_edges = cv2.Canny(mask_i8_blur, 10, 220)
 show_image(mask_i8_blur_edges)
-
+"""
 i_edges = cv2.Canny(mask_i8, 10, 220)
 
 show_image(i_edges)
