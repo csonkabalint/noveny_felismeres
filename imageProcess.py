@@ -69,14 +69,15 @@ img = cv2.imread("imageProcessTestData/quercus_acutissima_01.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_acutissima_03.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_acutissima_05.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_lobata_01.jpg")
-#img = cv2.imread("imageProcessTestData/quercus_agrifolia_01.jpg")
-#img = cv2.imread("imageProcessTestData/quercus_robus_01.jpg")
+img = cv2.imread("imageProcessTestData/quercus_agrifolia_01.jpg")
+img = cv2.imread("imageProcessTestData/quercus_robus_01.jpg")
 img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 plt.imshow(img_rgb)
 #img = cv2.medianBlur(img, 5)
 B, G, R = cv2.split(img)
 print(type(B))
 
+img = cv2.GaussianBlur(img, (5, 5), 0)
 
 clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
 b = clahe.apply(img[:, :, 0])
@@ -88,6 +89,7 @@ eq_rgb = img_rgb = cv2.cvtColor(equalized, cv2.COLOR_BGR2RGB)
 show_image(eq_rgb, "eq_rgb")
 
 #img = equalized
+#img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
 # VARI
 vari = (G - R) / (G + R - B + 0.00001)
@@ -216,8 +218,10 @@ hh, ww = edges_orig.shape[:2]
 print(hh)
 print(ww)
 # resize down, then back up
-h = 64
-w = (ww/hh)*64
+
+rsize = 16
+h = rsize
+w = (ww/hh)*rsize
 
 #h, w = (hh/32, ww/32)
 result_0 = cv2.resize(edges_orig, (int(w), int(h)), interpolation=cv2.INTER_AREA)
@@ -306,12 +310,16 @@ wts = cv2.watershed(img, markers)
 
 #wts_edge = cv2.watershed(edges_orig, markers)
 
-img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-wts_hsv = cv2.watershed(img_hsv, markers)
+#img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+#wts_hsv = cv2.watershed(img_hsv, markers)
 
+#img_gau = cv2.GaussianBlur(img, (5, 5), 0)
+#show_image(img_gau, "img_gau")
+#wts_blur = cv2.watershed(img_gau, markers)
 
 show_image(wts, "wts")
-show_image(wts_hsv, "wts_hsv")
+#show_image(wts_blur, "wts_blur")
+#show_image(wts_hsv, "wts_hsv")
 #show_image(wts_edge, "wts_edge")
 
 
