@@ -64,9 +64,9 @@ kernelClose = np.ones((20, 20))
 
 
 img = cv2.imread("imageProcessTestData/quercus_acutissima_01.jpg")
-img = cv2.imread("imageProcessTestData/quercus_acutissima_02.jpg")
-img = cv2.imread("imageProcessTestData/quercus_acutissima_04.jpg")
-img = cv2.imread("imageProcessTestData/quercus_acutissima_03.jpg")
+#img = cv2.imread("imageProcessTestData/quercus_acutissima_02.jpg")
+#img = cv2.imread("imageProcessTestData/quercus_acutissima_04.jpg")
+#img = cv2.imread("imageProcessTestData/quercus_acutissima_03.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_acutissima_05.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_lobata_01.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_agrifolia_01.jpg")
@@ -78,6 +78,16 @@ B, G, R = cv2.split(img)
 print(type(B))
 
 
+clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+b = clahe.apply(img[:, :, 0])
+g = clahe.apply(img[:, :, 1])
+r = clahe.apply(img[:, :, 2])
+equalized = np.dstack((b, g, r))
+
+eq_rgb = img_rgb = cv2.cvtColor(equalized, cv2.COLOR_BGR2RGB)
+show_image(eq_rgb, "eq_rgb")
+
+#img = equalized
 
 # VARI
 vari = (G - R) / (G + R - B + 0.00001)
@@ -203,10 +213,14 @@ show_image(mask_i8_blur_edges)
 #show_image(i_edges, "i_edges")
 """"""
 hh, ww = edges_orig.shape[:2]
-
+print(hh)
+print(ww)
 # resize down, then back up
-h, w = (16, 16)
-result_0 = cv2.resize(edges_orig, (w, h), interpolation=cv2.INTER_AREA)
+h = 64
+w = (ww/hh)*64
+
+#h, w = (hh/32, ww/32)
+result_0 = cv2.resize(edges_orig, (int(w), int(h)), interpolation=cv2.INTER_AREA)
 show_image(result_0, "pixelated_0")
 result_1 = cv2.resize(result_0, (ww, hh), interpolation=cv2.INTER_AREA)
 
@@ -273,11 +287,38 @@ plt.autoscale(False)
 plt.plot(x_min, y_min, 'ro')
 
 print(x_min)
+print(y_min)
+
+marker = np.zeros(edges_orig.shape, dtype=np.uint8)
+
+
+for i in range(len(x_min)):
+    #marker[int(x_min[i]), int(y_min[i])] = 1
+    marker[int(y_min[i]), int(x_min[i])] = 1
+
+show_image(marker, "marker")
+
+ret, markers = cv2.connectedComponents(marker)
+
+#markers = markers+1
+
+wts = cv2.watershed(img, markers)
+
+#wts_edge = cv2.watershed(edges_orig, markers)
+
+img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+wts_hsv = cv2.watershed(img_hsv, markers)
+
+
+show_image(wts, "wts")
+show_image(wts_hsv, "wts_hsv")
+#show_image(wts_edge, "wts_edge")
 
 
 
 
 show_end()
+
 
 # NDVI
 ndvi = (G - R) / (G + R)
