@@ -63,14 +63,19 @@ kernelOpen = np.ones((5, 5))
 kernelClose = np.ones((20, 20))
 
 
-img = cv2.imread("imageProcessTestData/quercus_acutissima_01.jpg")
+#img = cv2.imread("imageProcessTestData/quercus_acutissima_01.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_acutissima_02.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_acutissima_04.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_acutissima_03.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_acutissima_05.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_lobata_01.jpg")
-img = cv2.imread("imageProcessTestData/quercus_agrifolia_01.jpg")
-img = cv2.imread("imageProcessTestData/quercus_robus_01.jpg")
+#img = cv2.imread("imageProcessTestData/quercus_agrifolia_01.jpg")
+#img = cv2.imread("imageProcessTestData/quercus_robus_01.jpg")
+#img = cv2.imread("imageProcessTestData/level1.jpg")
+img = cv2.imread("imageProcessTestData/level2.jpg")
+#img = cv2.imread("imageProcessTestData/level3.jpg")
+
+
 img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 plt.imshow(img_rgb)
 #img = cv2.medianBlur(img, 5)
@@ -85,9 +90,11 @@ g = clahe.apply(img[:, :, 1])
 r = clahe.apply(img[:, :, 2])
 equalized = np.dstack((b, g, r))
 
-eq_rgb = img_rgb = cv2.cvtColor(equalized, cv2.COLOR_BGR2RGB)
-show_image(eq_rgb, "eq_rgb")
+eq_rgb = cv2.cvtColor(equalized, cv2.COLOR_BGR2RGB)
+#show_image(eq_rgb, "eq_rgb")
 
+img = equalized
+img = cv2.blur(img, (5, 5))
 #img = equalized
 #img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
@@ -148,10 +155,14 @@ show_image(fgMask, "FG Mask")
 
 
 edges_i = structured_edge(edges_i)
-show_image(edges_i, "edges_i")
+#show_image(edges_i, "edges_i")
 
 edges_orig = structured_edge(img)
 show_image(edges_orig, "edges_orig")
+
+#edges_orig = cv2.bitwise_and(edges_orig, edges_orig, mask=otsu_bin)
+
+
 #uh = cv2.morphologyEx(edges_orig, cv2.MORPH_OPEN, kernelOpen)
 #uh = cv2.morphologyEx(uh, cv2.MORPH_OPEN, kernelOpen)
 #uh = cv2.morphologyEx(uh, cv2.MORPH_OPEN, kernelOpen)
@@ -163,25 +174,25 @@ show_image(edges_orig, "edges_orig")
 #uh = cv2.erode(edges_orig, element)
 
 uh = edges_orig
-uh = uh*uh*uh*uh*uh
+#uh = uh*uh*uh*uh*uh
+#uh = (edges_orig > 0.2 * max(map(max, edges_orig))) * edges_orig
 uh = (edges_orig > 0.2) * edges_orig
 
 show_image(uh, "uh")
 
-edges_orig_blurred = blur_times(img, 100)
-edges_orig_blurred = structured_edge(img)
-show_image(edges_orig_blurred, "edges_orig_blurred")
+#edges_orig_blurred = blur_times(img, 100)
+#edges_orig_blurred = structured_edge(img)
+#show_image(edges_orig_blurred, "edges_orig_blurred")
 
 edges = structured_edge(img_osu_mask)
-show_image(edges, "edges")
+#show_image(edges, "edges")
 
 edge_i_and_orig = cv2.bitwise_and(edges_i, edges_orig)
 
-show_image(edge_i_and_orig, "edge_i_and_orig")
+#show_image(edge_i_and_orig, "edge_i_and_orig")
 
-edge_i_and_orig_and_or = edge_i_and_orig = cv2.bitwise_or(edge_i_and_orig, uh)
-
-show_image(edge_i_and_orig_and_or, "edge_i_and_orig_and_or")
+#edge_i_and_orig_and_or = edge_i_and_orig = cv2.bitwise_or(edge_i_and_orig, uh)
+#show_image(edge_i_and_orig_and_or, "edge_i_and_orig_and_or")
 
 #mask_i = calculate_i_channel(img_osu_mask)
 
@@ -189,27 +200,7 @@ show_image(edge_i_and_orig_and_or, "edge_i_and_orig_and_or")
 
 
 #mask_i8 = mask_i.astype(np.uint8)
-"""
-mask_i8_blur = blur_times(mask_i8, 1)
-mask_i8_blur_edges = cv2.Canny(mask_i8_blur, 10, 220)
-show_image(mask_i8_blur_edges)
 
-mask_i8_blur = blur_times(mask_i8, 2)
-mask_i8_blur_edges = cv2.Canny(mask_i8_blur, 10, 220)
-show_image(mask_i8_blur_edges)
-
-mask_i8_blur = blur_times(mask_i8, 4)
-mask_i8_blur_edges = cv2.Canny(mask_i8_blur, 10, 220)
-show_image(mask_i8_blur_edges)
-
-mask_i8_blur = blur_times(mask_i8, 8)
-mask_i8_blur_edges = cv2.Canny(mask_i8_blur, 10, 220)
-show_image(mask_i8_blur_edges)
-
-mask_i8_blur = blur_times(mask_i8, 1000)
-mask_i8_blur_edges = cv2.Canny(mask_i8_blur, 10, 220)
-show_image(mask_i8_blur_edges)
-"""
 #i_edges = cv2.Canny(mask_i8, 10, 220)
 
 #show_image(i_edges, "i_edges")
@@ -219,16 +210,30 @@ print(hh)
 print(ww)
 # resize down, then back up
 
-rsize = 16
+print(img.shape)
+
+eo1 = edges_orig
+eo1 = eo1 * 255
+eo1 = eo1.astype(np.uint8)
+eo1 = (eo1 > 100) * eo1
+#edges_orig3 = np.zeros((hh, ww), dtype=np.int32)
+edges_orig3 = np.dstack([eo1, eo1, eo1])
+
+print(edges_orig3.shape)
+
+show_image(edges_orig3, "edges_orig3")
+
+rsize = 32
 h = rsize
 w = (ww/hh)*rsize
 
 #h, w = (hh/32, ww/32)
-result_0 = cv2.resize(edges_orig, (int(w), int(h)), interpolation=cv2.INTER_AREA)
-show_image(result_0, "pixelated_0")
+result_0 = cv2.resize(uh, (int(w), int(h)), interpolation=cv2.INTER_AREA)
+result_0 = cv2.blur(result_0, (2, 2))
+#show_image(result_0, "pixelated_0")
 result_1 = cv2.resize(result_0, (ww, hh), interpolation=cv2.INTER_AREA)
 
-show_image(result_1, "pixelated_1")
+#show_image(result_1, "pixelated_1")
 
 
 
@@ -306,9 +311,12 @@ ret, markers = cv2.connectedComponents(marker)
 
 #markers = markers+1
 
+
 wts = cv2.watershed(img, markers)
 
-#wts_edge = cv2.watershed(edges_orig, markers)
+print(edges_orig3.dtype)
+
+#wts_edge = cv2.watershed(edges_orig3, markers)
 
 #img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 #wts_hsv = cv2.watershed(img_hsv, markers)
@@ -322,10 +330,31 @@ show_image(wts, "wts")
 #show_image(wts_hsv, "wts_hsv")
 #show_image(wts_edge, "wts_edge")
 
+wts = wts.astype(np.uint8)
 
+edges_str_fin = cv2.Canny(wts, 10, 220)
+show_image(edges_str_fin, "edges_str_fin")
 
+print(edges_str_fin.size)
+print(edges_orig.size)
+
+#edges_str_fin_orig = cv2.bitwise_and(edges_str_fin, edges_orig)
+#show_image(edges_str_fin_orig, "edges_str_fin_orig")
 
 show_end()
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # NDVI
