@@ -59,21 +59,25 @@ def structured_edge_one(img_e):
     return edges_e
 
 
-kernelOpen = np.ones((5, 5))
+kernelOpen = np.ones((10, 10))
 kernelClose = np.ones((20, 20))
 
 
 #img = cv2.imread("imageProcessTestData/quercus_acutissima_01.jpg")
-#img = cv2.imread("imageProcessTestData/quercus_acutissima_02.jpg")
-#img = cv2.imread("imageProcessTestData/quercus_acutissima_04.jpg")
-#img = cv2.imread("imageProcessTestData/quercus_acutissima_03.jpg")
+##img = cv2.imread("imageProcessTestData/quercus_acutissima_02.jpg")
+##img = cv2.imread("imageProcessTestData/quercus_acutissima_04.jpg")
+##img = cv2.imread("imageProcessTestData/quercus_acutissima_03.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_acutissima_05.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_lobata_01.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_agrifolia_01.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_robus_01.jpg")
-#img = cv2.imread("imageProcessTestData/level1.jpg")
+img = cv2.imread("imageProcessTestData/level1.jpg")
 img = cv2.imread("imageProcessTestData/level2.jpg")
-#img = cv2.imread("imageProcessTestData/level3.jpg")
+img = cv2.imread("imageProcessTestData/level3.jpg")
+
+hh, ww = img.shape[:2]
+
+img = cv2.resize(img, (int(ww / 4), int(hh / 4)), interpolation=cv2.INTER_AREA)
 
 
 img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -82,6 +86,7 @@ plt.imshow(img_rgb)
 B, G, R = cv2.split(img)
 print(type(B))
 
+"""
 img = cv2.GaussianBlur(img, (5, 5), 0)
 
 clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
@@ -93,13 +98,19 @@ equalized = np.dstack((b, g, r))
 eq_rgb = cv2.cvtColor(equalized, cv2.COLOR_BGR2RGB)
 #show_image(eq_rgb, "eq_rgb")
 
+
 img = equalized
 img = cv2.blur(img, (5, 5))
+"""
 #img = equalized
 #img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
 # VARI
 vari = (G - R) / (G + R - B + 0.00001)
+show_image(vari, "vari")
+vari = vari.astype(np.uint8)
+#print(vari.dtype)
+show_image(vari, "vari")
 #plt.figure()
 #plt.imshow(vari)
 
@@ -111,14 +122,32 @@ img_j = calculate_j(img)
 
 
 th, otsu_bin = cv2.threshold(img_j, 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-#show_image(otsu_bin)
+print(th)
+show_image(otsu_bin,"otsu_bin")
+otsu_bin = cv2.morphologyEx(otsu_bin, cv2.MORPH_OPEN, kernelOpen)
+show_image(otsu_bin,"otsu_bin")
+otsu_bin = cv2.morphologyEx(otsu_bin, cv2.MORPH_CLOSE, kernelClose)
+show_image(otsu_bin,"otsu_bin")
 otsu_bin = cv2.bitwise_not(otsu_bin)
 
+"""
+th, otsu_bin = cv2.threshold(vari, 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+print(th)
+show_image(otsu_bin,"otsu_bin")
+otsu_bin = cv2.morphologyEx(otsu_bin, cv2.MORPH_OPEN, kernelOpen)
+show_image(otsu_bin,"otsu_bin")
+otsu_bin = cv2.morphologyEx(otsu_bin, cv2.MORPH_CLOSE, kernelClose)
+show_image(otsu_bin,"otsu_bin")
+otsu_bin = cv2.bitwise_not(otsu_bin)
+
+show_end()
+"""
 #show_image(otsu_bin, "A")
 
 
-
-img_osu_mask = cv2.bitwise_and(img, img, mask=otsu_bin)
+#img = cv2.bitwise_and(img, img, mask=otsu_bin)
+#img_osu_mask = cv2.bitwise_and(img, img, mask=otsu_bin)
+#show_image(img_osu_mask, "img_osu_mask")
 """
 orig_image = img_osu_mask.copy()
 image = cv2.cvtColor(img_osu_mask, cv2.COLOR_BGR2RGB)
@@ -139,7 +168,7 @@ print(type(img))
 print(img.shape)
 print(img)
 """
-edges_i = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)
+#edges_i = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)
 """
 frame = img
 
@@ -154,11 +183,37 @@ show_image(fgMask, "FG Mask")
 """
 
 
-edges_i = structured_edge(edges_i)
+#edges_i = structured_edge(edges_i)
 #show_image(edges_i, "edges_i")
+edges_canny = cv2.Canny(img,60,120)
+show_image(edges_canny, "edges_canny")
+
+
+"""
+edges_canny = cv2.morphologyEx(edges_canny, cv2.MORPH_CLOSE, kernelClose)
+show_image(edges_canny, "edges_canny")
+edges_canny = cv2.morphologyEx(edges_canny, cv2.MORPH_OPEN, kernelOpen)
+show_image(edges_canny, "edges_canny")
+"""
 
 edges_orig = structured_edge(img)
 show_image(edges_orig, "edges_orig")
+
+"""
+edges_orig = cv2.morphologyEx(edges_orig, cv2.MORPH_CLOSE, kernelClose)
+show_image(edges_orig, "edges_orig")
+edges_orig = cv2.morphologyEx(edges_orig, cv2.MORPH_OPEN, kernelOpen)
+show_image(edges_orig, "edges_orig")
+"""
+
+structured_canny = cv2.Canny(img,60,120)
+show_image(structured_canny, "structured_canny")
+
+
+#orig_and_canny = cv2.bitwise_and(edges_orig, edges_orig, mask=edges_canny)
+#show_image(orig_and_canny, "orig_and_canny")
+
+
 
 #edges_orig = cv2.bitwise_and(edges_orig, edges_orig, mask=otsu_bin)
 
@@ -173,21 +228,22 @@ show_image(edges_orig, "edges_orig")
 #element = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5), (-1, -1))
 #uh = cv2.erode(edges_orig, element)
 
-uh = edges_orig
+#uh = edges_orig.copy()
 #uh = uh*uh*uh*uh*uh
 #uh = (edges_orig > 0.2 * max(map(max, edges_orig))) * edges_orig
 uh = (edges_orig > 0.2) * edges_orig
 
 show_image(uh, "uh")
 
+
 #edges_orig_blurred = blur_times(img, 100)
 #edges_orig_blurred = structured_edge(img)
 #show_image(edges_orig_blurred, "edges_orig_blurred")
 
-edges = structured_edge(img_osu_mask)
+#edges = structured_edge(img_osu_mask)
 #show_image(edges, "edges")
 
-edge_i_and_orig = cv2.bitwise_and(edges_i, edges_orig)
+#edge_i_and_orig = cv2.bitwise_and(edges_i, edges_orig)
 
 #show_image(edge_i_and_orig, "edge_i_and_orig")
 
@@ -211,26 +267,33 @@ print(ww)
 # resize down, then back up
 
 print(img.shape)
-
+"""
 eo1 = edges_orig
 eo1 = eo1 * 255
 eo1 = eo1.astype(np.uint8)
 eo1 = (eo1 > 100) * eo1
 #edges_orig3 = np.zeros((hh, ww), dtype=np.int32)
-edges_orig3 = np.dstack([eo1, eo1, eo1])
+
 
 print(edges_orig3.shape)
 
 show_image(edges_orig3, "edges_orig3")
+"""
+
+#uh = edges_orig
+
+to_resize = uh.copy()
+to_resize = cv2.bitwise_and(to_resize, to_resize, mask=otsu_bin)
+
 
 rsize = 32
 h = rsize
 w = (ww/hh)*rsize
 
 #h, w = (hh/32, ww/32)
-result_0 = cv2.resize(uh, (int(w), int(h)), interpolation=cv2.INTER_AREA)
+result_0 = cv2.resize(to_resize, (int(w), int(h)), interpolation=cv2.INTER_AREA)
 result_0 = cv2.blur(result_0, (2, 2))
-#show_image(result_0, "pixelated_0")
+show_image(result_0, "pixelated_0")
 result_1 = cv2.resize(result_0, (ww, hh), interpolation=cv2.INTER_AREA)
 
 #show_image(result_1, "pixelated_1")
@@ -285,7 +348,6 @@ plt.plot(x_min, y_min, 'ro')
 print(hh/h)
 
 
-
 for i in range(len(x_min)):
     x_min[i] = (int(hh/h))*x_min[i]
     y_min[i] = (int(ww/w))*y_min[i]
@@ -312,11 +374,19 @@ ret, markers = cv2.connectedComponents(marker)
 #markers = markers+1
 
 
-wts = cv2.watershed(img, markers)
+#wts = cv2.watershed(img, markers)
 
-print(edges_orig3.dtype)
+#print(edges_orig3.dtype)
 
-#wts_edge = cv2.watershed(edges_orig3, markers)
+e = edges_orig.copy()
+e = e * 255
+e = e.astype(np.uint8)
+show_image(e,"e")
+#edges_orig3 = np.dstack([e, np.zeros(e.shape[:2]), np.zeros(e.shape[:2])])
+edges_orig3 = np.dstack([e, e, e])
+show_image(edges_orig3, "edges_orig3")
+edges_orig3 = edges_orig3
+wts_edge = cv2.watershed(edges_orig3, markers)
 
 #img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 #wts_hsv = cv2.watershed(img_hsv, markers)
@@ -325,23 +395,25 @@ print(edges_orig3.dtype)
 #show_image(img_gau, "img_gau")
 #wts_blur = cv2.watershed(img_gau, markers)
 
-show_image(wts, "wts")
+#show_image(wts, "wts")
 #show_image(wts_blur, "wts_blur")
 #show_image(wts_hsv, "wts_hsv")
-#show_image(wts_edge, "wts_edge")
+show_image(wts_edge, "wts_edge")
+show_end()
 
-wts = wts.astype(np.uint8)
 
-edges_str_fin = cv2.Canny(wts, 10, 220)
-show_image(edges_str_fin, "edges_str_fin")
+#wts = wts.astype(np.uint8)
 
-print(edges_str_fin.size)
+#edges_str_fin = cv2.Canny(wts, 10, 220)
+#show_image(edges_str_fin, "edges_str_fin")
+
+#print(edges_str_fin.size)
 print(edges_orig.size)
 
 #edges_str_fin_orig = cv2.bitwise_and(edges_str_fin, edges_orig)
 #show_image(edges_str_fin_orig, "edges_str_fin_orig")
 
-show_end()
+
 
 
 
