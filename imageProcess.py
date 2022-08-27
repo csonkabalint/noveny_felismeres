@@ -6,6 +6,13 @@ import scipy.ndimage as ndimage
 import scipy.ndimage.filters as filters
 
 
+def calc_ExGR(cB, cG, cR):
+    ExG = (2*cG)-cR-cB
+    print(type(ExG))
+    ExR = (1.4*cR)-cB
+    ExGR = ExG - ExR
+    return ExGR
+
 def show_end():
     plt.show()
     exit(0)
@@ -34,7 +41,7 @@ def blur_times(img_d, times):
     return img_d
 
 
-def structured_edge(img_e):
+def structured_edge_bgr(img_e):
 
     #img_e_orig = img_e.copy()
     image_e = cv2.cvtColor(img_e, cv2.COLOR_BGR2RGB)
@@ -45,6 +52,12 @@ def structured_edge(img_e):
     """
     edge_detector_e = cv2.ximgproc.createStructuredEdgeDetection('StructuredEdgeModel/model.yml')
     edges_e = edge_detector_e.detectEdges(image_e)
+    return edges_e
+
+def structured_edge(img_f):
+    img_f = img_f.astype(np.float32) / 255.0
+    edge_detector_e = cv2.ximgproc.createStructuredEdgeDetection('StructuredEdgeModel/model.yml')
+    edges_e = edge_detector_e.detectEdges(img_f)
     return edges_e
 
 def structured_edge_one(img_e):
@@ -72,8 +85,8 @@ kernelClose = np.ones((20, 20))
 #img = cv2.imread("imageProcessTestData/quercus_agrifolia_01.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_robus_01.jpg")
 img = cv2.imread("imageProcessTestData/level1.jpg")
-img = cv2.imread("imageProcessTestData/level2.jpg")
-img = cv2.imread("imageProcessTestData/level3.jpg")
+#img = cv2.imread("imageProcessTestData/level2.jpg")
+#img = cv2.imread("imageProcessTestData/level3.jpg")
 
 hh, ww = img.shape[:2]
 
@@ -106,21 +119,40 @@ img = cv2.blur(img, (5, 5))
 #img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
 # VARI
-vari = (G - R) / (G + R - B + 0.00001)
-show_image(vari, "vari")
-vari = vari.astype(np.uint8)
+#vari = (G - R) / (G + R - B + 0.00001)
+#show_image(vari, "vari")
+#vari = vari.astype(np.uint8)
 #print(vari.dtype)
-show_image(vari, "vari")
+#show_image(vari, "vari")
 #plt.figure()
 #plt.imshow(vari)
 
 
 # J
-img_j = calculate_j(img)
+#img_j = calculate_j(img)
 #show_image(img_j)
 
+img_exgr = calc_ExGR(B, G, R)
+print(type(img_exgr))
+show_image(img_exgr, "img_exgr")
+img_exgr = img_exgr.astype(np.uint8)
 
 
+th_e, exgr_bin = cv2.threshold(img_exgr, 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+show_image(exgr_bin, "exgr_bin")
+
+exgr_bin = cv2.morphologyEx(exgr_bin, cv2.MORPH_OPEN, kernelOpen)
+show_image(exgr_bin, "exgr_bin")
+exgr_bin = cv2.morphologyEx(exgr_bin, cv2.MORPH_CLOSE, kernelClose)
+show_image(exgr_bin, "exgr_bin")
+exgr_bin_not = cv2.bitwise_not(exgr_bin)
+"""
+
+img_exgr_mask = cv2.bitwise_and(img, img, mask=exgr_bin)
+show_image(img_exgr_mask, "img_exgr_mask")
+"""
+
+"""
 th, otsu_bin = cv2.threshold(img_j, 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
 print(th)
 show_image(otsu_bin,"otsu_bin")
@@ -129,6 +161,7 @@ show_image(otsu_bin,"otsu_bin")
 otsu_bin = cv2.morphologyEx(otsu_bin, cv2.MORPH_CLOSE, kernelClose)
 show_image(otsu_bin,"otsu_bin")
 otsu_bin = cv2.bitwise_not(otsu_bin)
+"""
 
 """
 th, otsu_bin = cv2.threshold(vari, 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
@@ -196,7 +229,7 @@ edges_canny = cv2.morphologyEx(edges_canny, cv2.MORPH_OPEN, kernelOpen)
 show_image(edges_canny, "edges_canny")
 """
 
-edges_orig = structured_edge(img)
+edges_orig = structured_edge_bgr(img)
 show_image(edges_orig, "edges_orig")
 
 """
@@ -206,10 +239,24 @@ edges_orig = cv2.morphologyEx(edges_orig, cv2.MORPH_OPEN, kernelOpen)
 show_image(edges_orig, "edges_orig")
 """
 
-structured_canny = cv2.Canny(img,60,120)
-show_image(structured_canny, "structured_canny")
+#structured_canny = cv2.Canny(img, 60, 120)
+#show_image(structured_canny, "structured_canny")
 
+img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+hsv_structured = structured_edge(img_hsv)
+show_image(hsv_structured, "hsv_structured")
 
+H, S, V = cv2.split(img_hsv)
+VVV = np.dstack([V, V, V])
+VVV_structured = structured_edge(VVV)
+show_image(VVV_structured, "VVV_structured")
+
+exgr3 = np.dstack([img_exgr, img_exgr, img_exgr])
+exgr_structured = structured_edge(exgr3)
+show_image(exgr_structured, "exgr_structured")
+
+orig_plus_exgr3 = edges_orig + exgr_structured
+show_image(orig_plus_exgr3, "orig_plus_exgr3")
 #orig_and_canny = cv2.bitwise_and(edges_orig, edges_orig, mask=edges_canny)
 #show_image(orig_and_canny, "orig_and_canny")
 
@@ -231,8 +278,13 @@ show_image(structured_canny, "structured_canny")
 #uh = edges_orig.copy()
 #uh = uh*uh*uh*uh*uh
 #uh = (edges_orig > 0.2 * max(map(max, edges_orig))) * edges_orig
-uh = (edges_orig > 0.2) * edges_orig
 
+#edges_orig = edges_orig + 1
+#edges_orig = edges_orig * edges_orig * edges_orig * edges_orig
+show_image(edges_orig, "edges_orig")
+uh = orig_plus_exgr3.copy()
+uh = (uh > 0.2) * uh
+#uh = edges_canny.copy()
 show_image(uh, "uh")
 
 
@@ -283,8 +335,9 @@ show_image(edges_orig3, "edges_orig3")
 #uh = edges_orig
 
 to_resize = uh.copy()
-to_resize = cv2.bitwise_and(to_resize, to_resize, mask=otsu_bin)
+to_resize = cv2.bitwise_and(to_resize, to_resize, mask=exgr_bin_not)
 
+#to_resize = exgr_bin.copy()
 
 rsize = 32
 h = rsize
@@ -388,7 +441,7 @@ show_image(edges_orig3, "edges_orig3")
 edges_orig3 = edges_orig3
 wts_edge = cv2.watershed(edges_orig3, markers)
 
-#img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+
 #wts_hsv = cv2.watershed(img_hsv, markers)
 
 #img_gau = cv2.GaussianBlur(img, (5, 5), 0)
@@ -456,9 +509,9 @@ plt.imshow(img_edges)
 
 
 
-edge_oshu = cv2.bitwise_and(img_edges, img_edges, mask=otsu_bin)
-plt.figure()
-plt.imshow(edge_oshu)
+#edge_oshu = cv2.bitwise_and(img_edges, img_edges, mask=otsu_bin)
+#plt.figure()
+#plt.imshow(edge_oshu)
 
 masked_V = cv2.bitwise_and(V, V, mask=maskClose)
 #water_shed = cv2.watershed(masked_V)
@@ -482,8 +535,8 @@ plt.imshow(e_im)
 plt.figure()
 plt.imshow(maskClose)
 
-image_2 = (otsu_bin + mask) / 2
-image_2 = cv2.morphologyEx(image_2, cv2.MORPH_CLOSE, kernelClose)
+#image_2 = (otsu_bin + mask) / 2
+#image_2 = cv2.morphologyEx(image_2, cv2.MORPH_CLOSE, kernelClose)
 #plt.figure()
 #plt.imshow(image_2)
 
