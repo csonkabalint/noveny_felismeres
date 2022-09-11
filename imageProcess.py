@@ -87,6 +87,8 @@ kernelClose = np.ones((20, 20))
 img = cv2.imread("imageProcessTestData/level1.jpg")
 #img = cv2.imread("imageProcessTestData/level2.jpg")
 #img = cv2.imread("imageProcessTestData/level3.jpg")
+#img = cv2.imread("imageProcessTestData/level4.jpg")
+#img = cv2.imread("imageProcessTestData/level7.jpg")
 
 hh, ww = img.shape[:2]
 
@@ -232,6 +234,9 @@ show_image(edges_canny, "edges_canny")
 edges_orig = structured_edge_bgr(img)
 show_image(edges_orig, "edges_orig")
 
+
+dist_map = cv2.distanceTransform(exgr_bin, cv2.DIST_L2, cv2.DIST_MASK_PRECISE)
+show_image(dist_map, "dist_map")
 """
 edges_orig = cv2.morphologyEx(edges_orig, cv2.MORPH_CLOSE, kernelClose)
 show_image(edges_orig, "edges_orig")
@@ -335,17 +340,24 @@ show_image(edges_orig3, "edges_orig3")
 #uh = edges_orig
 
 to_resize = uh.copy()
-to_resize = cv2.bitwise_and(to_resize, to_resize, mask=exgr_bin_not)
+to_resize = to_resize * 255
+to_resize = to_resize.astype(np.uint8)
+show_image(to_resize, "to_resize")
+#to_resize = cv2.bitwise_and(to_resize, to_resize, mask=exgr_bin_not)
 
 #to_resize = exgr_bin.copy()
 
 rsize = 32
 h = rsize
 w = (ww/hh)*rsize
-
+print("w v")
+print(w)
 #h, w = (hh/32, ww/32)
 result_0 = cv2.resize(to_resize, (int(w), int(h)), interpolation=cv2.INTER_AREA)
+show_image(result_0, "pixelated_00")
 result_0 = cv2.blur(result_0, (2, 2))
+ret, result_0 = cv2.threshold(result_0, 10, 255, cv2.THRESH_BINARY) #adaptiv?
+result_0 = cv2.distanceTransform(result_0, cv2.DIST_L2, cv2.DIST_MASK_PRECISE)
 show_image(result_0, "pixelated_0")
 result_1 = cv2.resize(result_0, (ww, hh), interpolation=cv2.INTER_AREA)
 
