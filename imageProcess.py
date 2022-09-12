@@ -4,6 +4,7 @@ import numpy as np
 import scipy
 import scipy.ndimage as ndimage
 import scipy.ndimage.filters as filters
+import threading
 
 
 def calc_ExGR(cB, cG, cR):
@@ -144,7 +145,7 @@ th_e, exgr_bin = cv2.threshold(img_exgr, 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OT
 show_image(exgr_bin, "exgr_bin")
 
 exgr_bin = cv2.morphologyEx(exgr_bin, cv2.MORPH_OPEN, kernelOpen)
-show_image(exgr_bin, "exgr_bin")
+#show_image(exgr_bin, "exgr_bin")
 exgr_bin = cv2.morphologyEx(exgr_bin, cv2.MORPH_CLOSE, kernelClose)
 show_image(exgr_bin, "exgr_bin")
 exgr_bin_not = cv2.bitwise_not(exgr_bin)
@@ -221,7 +222,7 @@ show_image(fgMask, "FG Mask")
 #edges_i = structured_edge(edges_i)
 #show_image(edges_i, "edges_i")
 edges_canny = cv2.Canny(img,60,120)
-show_image(edges_canny, "edges_canny")
+#show_image(edges_canny, "edges_canny")
 
 
 """
@@ -249,16 +250,16 @@ show_image(edges_orig, "edges_orig")
 
 img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 hsv_structured = structured_edge(img_hsv)
-show_image(hsv_structured, "hsv_structured")
+#show_image(hsv_structured, "hsv_structured")
 
 H, S, V = cv2.split(img_hsv)
 VVV = np.dstack([V, V, V])
 VVV_structured = structured_edge(VVV)
-show_image(VVV_structured, "VVV_structured")
+#show_image(VVV_structured, "VVV_structured")
 
 exgr3 = np.dstack([img_exgr, img_exgr, img_exgr])
 exgr_structured = structured_edge(exgr3)
-show_image(exgr_structured, "exgr_structured")
+#show_image(exgr_structured, "exgr_structured")
 
 orig_plus_exgr3 = edges_orig + exgr_structured
 show_image(orig_plus_exgr3, "orig_plus_exgr3")
@@ -464,8 +465,33 @@ wts_edge = cv2.watershed(edges_orig3, markers)
 #show_image(wts_blur, "wts_blur")
 #show_image(wts_hsv, "wts_hsv")
 show_image(wts_edge, "wts_edge")
-show_end()
 
+positions = []
+f = open("colorfile.txt", "w")
+f.write("asd")
+
+def mouse_event(event):
+    print('x: {} and y: {}'.format(event.xdata, event.ydata))
+    posit = (event.xdata, event.ydata)
+    positions.append(posit)
+    line = "(" + str(event.xdata) + "," + str(event.ydata) + ")"
+    f.write(f"{line}\n")
+
+
+fig = plt.figure()
+cid = fig.canvas.mpl_connect('button_press_event', mouse_event)
+plt.imshow(wts_edge)
+
+
+
+"""x = threading.Thread(target=getColors(), args=(1,))
+x.start()
+x.join()"""
+
+plt.show()
+asdasd = input()
+print(asdasd)
+print("safdsfd")
 
 #wts = wts.astype(np.uint8)
 
@@ -473,13 +499,16 @@ show_end()
 #show_image(edges_str_fin, "edges_str_fin")
 
 #print(edges_str_fin.size)
-print(edges_orig.size)
+#print(edges_orig.size)
 
 #edges_str_fin_orig = cv2.bitwise_and(edges_str_fin, edges_orig)
 #show_image(edges_str_fin_orig, "edges_str_fin_orig")
+if len(positions) == 0:
+    print("nah_nulla")
 
-
-
+for pos in positions:
+    print(pos)
+exit(0)
 
 
 
