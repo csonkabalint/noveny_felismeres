@@ -5,6 +5,7 @@ import scipy
 import scipy.ndimage as ndimage
 import scipy.ndimage.filters as filters
 import threading
+from PIL import Image
 
 
 def calc_ExGR(cB, cG, cR):
@@ -85,11 +86,13 @@ kernelClose = np.ones((20, 20))
 #img = cv2.imread("imageProcessTestData/quercus_lobata_01.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_agrifolia_01.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_robus_01.jpg")
-img = cv2.imread("imageProcessTestData/level1.jpg")
+#img = cv2.imread("imageProcessTestData/level1.jpg")
 #img = cv2.imread("imageProcessTestData/level2.jpg")
 #img = cv2.imread("imageProcessTestData/level3.jpg")
-#img = cv2.imread("imageProcessTestData/level4.jpg")
-#img = cv2.imread("imageProcessTestData/level7.jpg")
+img = cv2.imread("imageProcessTestData/level4.jpg")
+img = cv2.imread("imageProcessTestData/level7.jpg")
+
+name = "level7.png"
 
 hh, ww = img.shape[:2]
 
@@ -465,6 +468,17 @@ wts_edge = cv2.watershed(edges_orig3, markers)
 #show_image(wts_blur, "wts_blur")
 #show_image(wts_hsv, "wts_hsv")
 show_image(wts_edge, "wts_edge")
+wts_edge_rgb = wts_edge.copy()
+wts_edge_rgb = wts_edge_rgb + 2
+wts_edge_rgb = (255 / wts_edge_rgb.max()) * wts_edge_rgb
+wts_edge_rgb = wts_edge_rgb.astype(np.uint8)
+print(wts_edge_rgb)
+wts_edge_rgb = cv2.cvtColor(wts_edge_rgb, cv2.COLOR_GRAY2RGB)
+show_image(wts_edge_rgb, "wts_edge_rgb")
+to_save = Image.fromarray(wts_edge_rgb)
+
+to_save.save(name)
+
 
 positions = []
 f = open("colorfile.txt", "w")
