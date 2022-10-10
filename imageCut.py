@@ -9,12 +9,14 @@ pi = math.pi
 """def points_in_circle(r, center_x, center_y, n=100):
     return [(math.cos((2*pi/n)*x)*r + center_x, math.sin((2*pi/n)*x)*r) + center_y for x in range(0, n+1)]"""
 
+
 def points_in_circle(r, center_x, center_y, n=100):
     x_m, y_m = [], []
     for x in range(0, n + 1):
         x_m.append(math.cos((2*pi/n)*x)*r + center_x)
         y_m.append(math.sin((2*pi/n)*x)*r + center_y)
     return x_m, y_m
+
 
 def is_inside(y_pos, x_pos, mask):
     for px, py in zip(x_pos, y_pos):
@@ -23,6 +25,7 @@ def is_inside(y_pos, x_pos, mask):
         if mask[int(px)][int(py)] == 0:
             return False
     return True
+
 
 def show_end():
     plt.show()
@@ -34,7 +37,8 @@ def show_image(img_b, title):
     fig.canvas.set_window_title(title)
     plt.imshow(img_b)
 
-file_name = "level3"
+
+file_name = "level1"
 
 img_orig = cv2.imread("imageProcessTestData/{}.jpg".format(file_name))
 hh, ww = img_orig.shape[:2]
@@ -46,10 +50,8 @@ show_image(img_orig_res, "img_orig")
 img = cv2.imread("{}_cut.png".format(file_name))
 img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 img = img.astype(np.uint8)
-print(img.dtype)
 img_dist = cv2.distanceTransform(img, cv2.DIST_L2, cv2.DIST_MASK_PRECISE)
 result = np.where(img_dist == img_dist.max())
-print(result[0])
 
 r = 1
 x_min, y_min = points_in_circle(r, result[1], result[0], 20)
@@ -87,12 +89,11 @@ plt.autoscale(False)
 plt.plot(square_x, square_y, 'ro')
 
 
-
 show_image(crop_img_res, "crop_img_res")
 show_image(crop_img, "crop_img")
 
 to_save = Image.fromarray(crop_img)
-to_save.save("{}_crop.png".format(file_name))
+to_save.save("imageProcessTestData\\{}_crop.png".format(file_name))
 
 
 show_end()

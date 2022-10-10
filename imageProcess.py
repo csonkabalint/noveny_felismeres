@@ -15,6 +15,7 @@ def calc_ExGR(cB, cG, cR):
     ExGR = ExG - ExR
     return ExGR
 
+
 def show_end():
     plt.show()
     exit(0)
@@ -37,6 +38,7 @@ def calculate_j(img_c):
     j = (2*G - R - B) - (2*R - G - B)
     return j
 
+
 def blur_times(img_d, times):
     for i in range(times):
         img_d = cv2.medianBlur(img_d, 3)
@@ -56,11 +58,13 @@ def structured_edge_bgr(img_e):
     edges_e = edge_detector_e.detectEdges(image_e)
     return edges_e
 
+
 def structured_edge(img_f):
     img_f = img_f.astype(np.float32) / 255.0
     edge_detector_e = cv2.ximgproc.createStructuredEdgeDetection('StructuredEdgeModel/model.yml')
     edges_e = edge_detector_e.detectEdges(img_f)
     return edges_e
+
 
 def structured_edge_one(img_e):
     # img_e_orig = img_e.copy()
@@ -72,6 +76,23 @@ def structured_edge_one(img_e):
     edge_detector_e = cv2.ximgproc.createStructuredEdgeDetection('StructuredEdgeModel/model.yml')
     edges_e = edge_detector_e.detectEdges(image_e)
     return edges_e
+
+
+def locate_local_minimums(image, neighborhood_size, threshold):
+    data_min = ndimage.minimum_filter(image, neighborhood_size)
+    data_max = ndimage.maximum_filter(data, neighborhood_size)
+    minima = (image == data_min)
+    diff = ((data_max - data_min) > threshold)
+    minima[diff == 0] = 0
+    labeled = ndimage.label(minima)[0]
+    slices_min = ndimage.find_objects(labeled)
+    x_min, y_min = [], []
+    for dy, dx in slices_min:
+        x_center = (dx.start + dx.stop - 1) / 2
+        x_min.append(x_center)
+        y_center = (dy.start + dy.stop - 1) / 2
+        y_min.append(y_center)
+    return x_min, y_min
 
 
 kernelOpen = np.ones((10, 10))
@@ -224,7 +245,7 @@ show_image(fgMask, "FG Mask")
 
 #edges_i = structured_edge(edges_i)
 #show_image(edges_i, "edges_i")
-edges_canny = cv2.Canny(img,60,120)
+edges_canny = cv2.Canny(img, 60, 120)
 #show_image(edges_canny, "edges_canny")
 
 
@@ -268,7 +289,6 @@ orig_plus_exgr3 = edges_orig + exgr_structured
 show_image(orig_plus_exgr3, "orig_plus_exgr3")
 #orig_and_canny = cv2.bitwise_and(edges_orig, edges_orig, mask=edges_canny)
 #show_image(orig_and_canny, "orig_and_canny")
-
 
 
 #edges_orig = cv2.bitwise_and(edges_orig, edges_orig, mask=otsu_bin)
@@ -360,7 +380,7 @@ print(w)
 result_0 = cv2.resize(to_resize, (int(w), int(h)), interpolation=cv2.INTER_AREA)
 show_image(result_0, "pixelated_00")
 result_0 = cv2.blur(result_0, (2, 2))
-ret, result_0 = cv2.threshold(result_0, 10, 255, cv2.THRESH_BINARY) #adaptiv?
+ret, result_0 = cv2.threshold(result_0, 10, 255, cv2.THRESH_BINARY)  #adaptiv?
 result_0 = cv2.distanceTransform(result_0, cv2.DIST_L2, cv2.DIST_MASK_PRECISE)
 show_image(result_0, "pixelated_0")
 result_1 = cv2.resize(result_0, (ww, hh), interpolation=cv2.INTER_AREA)
@@ -368,42 +388,18 @@ result_1 = cv2.resize(result_0, (ww, hh), interpolation=cv2.INTER_AREA)
 #show_image(result_1, "pixelated_1")
 
 
-
 neighborhood_size = 5
 threshold = 0.005
 
 data = result_0
-
-data_max = ndimage.maximum_filter(data, neighborhood_size)
-maxima = (data == data_max)
-
-data_min = ndimage.minimum_filter(data, neighborhood_size)
-minima = (data == data_min)
-
-diff = ((data_max - data_min) > threshold)
-
-maxima[diff == 0] = 0
-minima[diff == 0] = 0
+show_image(result_0, "result_0")
 
 
-labeled, num_objects = ndimage.label(minima)
-slices_min = ndimage.find_objects(labeled)
-x_min, y_min = [], []
-for dy, dx in slices_min:
-    x_center = (dx.start + dx.stop - 1)/2
-    x_min.append(x_center)
-    y_center = (dy.start + dy.stop - 1)/2
-    y_min.append(y_center)
 
 
-labeled, num_objects = ndimage.label(maxima)
-slices = ndimage.find_objects(labeled)
-x, y = [], []
-for dy, dx in slices:
-    x_center = (dx.start + dx.stop - 1)/2
-    x.append(x_center)
-    y_center = (dy.start + dy.stop - 1)/2
-    y.append(y_center)
+
+x_min, y_min = locate_local_minimums(data, 5, 0.005)
+
 
 print(x_min)
 
@@ -450,7 +446,7 @@ ret, markers = cv2.connectedComponents(marker)
 e = edges_orig.copy()
 e = e * 255
 e = e.astype(np.uint8)
-show_image(e,"e")
+show_image(e, "e")
 #edges_orig3 = np.dstack([e, np.zeros(e.shape[:2]), np.zeros(e.shape[:2])])
 edges_orig3 = np.dstack([e, e, e])
 show_image(edges_orig3, "edges_orig3")
@@ -484,6 +480,7 @@ positions = []
 f = open("colorfile.txt", "w")
 f.write("asd")
 
+
 def mouse_event(event):
     print('x: {} and y: {}'.format(event.xdata, event.ydata))
     posit = (event.xdata, event.ydata)
@@ -495,7 +492,6 @@ def mouse_event(event):
 fig = plt.figure()
 cid = fig.canvas.mpl_connect('button_press_event', mouse_event)
 plt.imshow(wts_edge)
-
 
 
 """x = threading.Thread(target=getColors(), args=(1,))
@@ -543,8 +539,6 @@ ndvi = (G - R) / (G + R)
 #plt.imshow(ndvi)
 
 
-
-
 img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 lowerBound, upperBound = (36, 0, 0), (86, 255, 255)
 
@@ -562,8 +556,6 @@ plt.figure()
 plt.imshow(img_edges)
 
 
-
-
 #edge_oshu = cv2.bitwise_and(img_edges, img_edges, mask=otsu_bin)
 #plt.figure()
 #plt.imshow(edge_oshu)
@@ -573,7 +565,7 @@ masked_V = cv2.bitwise_and(V, V, mask=maskClose)
 
 masked_V = cv2.medianBlur(masked_V, 3)
 edges = cv2.Canny(masked_V, 150, 200)
-kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(9, 9))
+kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))
 dilated = cv2.dilate(edges, kernel)
 cnts, b = cv2.findContours(dilated.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -596,5 +588,3 @@ plt.imshow(maskClose)
 #plt.imshow(image_2)
 
 plt.show()
-
-
