@@ -17,8 +17,8 @@ input_shape = input_details[0]['shape']
 print(input_shape)
 img = cv2.imread("imageProcessTestData/C11_1.jpg")
 print(img)
-img_test = [] #np.empty(shape=1, dtype=float)
-img_test.append(img)
+img_test = [img]
+# np.empty(shape=1, dtype=float)
 print(img_test)
 bruh = np.random.random_sample(input_shape)
 input_data = np.array(img_test, dtype=np.float32)

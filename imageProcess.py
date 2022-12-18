@@ -1,10 +1,7 @@
 import matplotlib.pyplot as plt
 import cv2
 import numpy as np
-import scipy
 import scipy.ndimage as ndimage
-import scipy.ndimage.filters as filters
-import threading
 from PIL import Image
 
 
@@ -100,9 +97,9 @@ kernelClose = np.ones((20, 20))
 
 
 #img = cv2.imread("imageProcessTestData/quercus_acutissima_01.jpg")
-##img = cv2.imread("imageProcessTestData/quercus_acutissima_02.jpg")
-##img = cv2.imread("imageProcessTestData/quercus_acutissima_04.jpg")
-##img = cv2.imread("imageProcessTestData/quercus_acutissima_03.jpg")
+#img = cv2.imread("imageProcessTestData/quercus_acutissima_02.jpg")
+#img = cv2.imread("imageProcessTestData/quercus_acutissima_04.jpg")
+#img = cv2.imread("imageProcessTestData/quercus_acutissima_03.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_acutissima_05.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_lobata_01.jpg")
 #img = cv2.imread("imageProcessTestData/quercus_agrifolia_01.jpg")
